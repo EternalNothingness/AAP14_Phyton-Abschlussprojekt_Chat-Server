@@ -41,17 +41,17 @@ class Chat_Server(object):
                 print("Got from client", active_client_address, ": %s" % data.decode(self.server_charset))
                 for i in self.client_addresses:     # rotate in list
                     if i != active_client_address:
-                        #should prevent sending data back to sender, but ports seens  not to be suited for this task
+                        #should prevent sending data back to sender
                         print("Active Address:", active_client_address)
                         print("Client Address:", i)
                         print("Number of Clients:", self.n_client)
-                        conn.sendto(data, i)  # send data to chat participants
+                        conn.sendto(data, i)  # send data to other chat participants
             except:
                 print("Unexpected error:", sys.exc_info()[1])
                 break
         conn.close()  # Close the connection
         self.n_client = self.n_client - 1
-        self.client_addresses.remove(active_client_address)    # don't work because of ports
+        self.client_addresses.remove(active_client_address)
 
     # ------------------------- establish_connection -------------------------
     def establish_connection(self):
