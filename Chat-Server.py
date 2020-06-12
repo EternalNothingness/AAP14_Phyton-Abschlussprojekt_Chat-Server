@@ -16,11 +16,15 @@ class Chat_Server(object):
     def __init__(self, host='localhost', port=12345, server_charset='cp850', n=5):  # init variables with default values
         self.host = host    # define host
         self.port = port    # define port
+        self.address = self.host, self.port # address consists of host and port
         self.server_charset = server_charset    # define character set
+        self.n = n  # How often the server will allow unaccepted connections before refusing new ones
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
 
-        self.s.bind(self.host, self.port)   # Bind to the port
-        self.s.listen(n)    # How often the server will allow unaccepted connections before refusing new ones
+    # ------------------------- prepare_connection -------------------------
+    def prepare_connection(self):
+        self.s.bind(self.address)  # Bind to the port
+        self.s.listen(self.n)  # How often the server will allow unaccepted connections before refusing new ones
         # Server is now initialized and prepared for client connection
 
     # ------------------------- handle_connection -------------------------
@@ -49,6 +53,6 @@ class Chat_Server(object):
 
 ########################### main program ###########################
 oChat_Server = Chat_Server()
-
+oChat_Server.prepare_connection()
 while True:
     oChat_Server.establish_connection()
