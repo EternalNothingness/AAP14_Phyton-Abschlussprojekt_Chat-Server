@@ -10,6 +10,12 @@ from threading import Thread
 from time import sleep
 
 ########################### classes ###########################
+class Message(object):
+    def __init__(self,thread_id=0,message_text=""):
+        self.thread_id = thread_id
+        self.message_text = message_text
+        self.read_by_threads = [] # Remember all Threads this message was read by
+
 class Chat_Server(object):
 
     # ------------------------- init -------------------------
@@ -22,6 +28,8 @@ class Chat_Server(object):
         self.n_listen = n_listen  # How often the server will allow unaccepted connections before refusing new ones
         self.n_client = 0   # number of active clients
         self.client_addresses = []    # memory for client addresses
+        
+        self.messages = [] # Remember all Messages which where sent to the Server
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
 
@@ -32,20 +40,25 @@ class Chat_Server(object):
         # Server is now initialized and prepared for client connection
 
     # ------------------------- handle_connection -------------------------
-    def handle_connection(self, conn, active_client_address):
+    def handle_connection(self, conn, active_client_address,thread_id):
         while True:
             try:
                 data = conn.recv(1024)
                 if data.decode(self.server_charset) == "":
                     break
-                print("Got from client", active_client_address, ": %s" % data.decode(self.server_charset))
-                for i in self.client_addresses:     # rotate in list
-                    if i != active_client_address:
-                        #should prevent sending data back to sender
-                        print("Active Address:", active_client_address)
-                        print("Client Address:", i)
-                        print("Number of Clients:", self.n_client)
-                        conn.sendto(data, i)  # send data to other chat participants
+                message_text = data.decode(self.server_charset)
+                print("Got from client ", active_client_address, " on Thread " , thread_id , ": %s" % message_text)
+                self.messages.append(Message(thread_id,message_text))
+                # for i in self.client_addresses:     # rotate in list
+                #     if i != active_client_address:
+                #         #should prevent sending data back to sender
+                #         print("Active Address:", active_client_address)
+                #         print("Client Address:", i)
+                #         print("Number of Clients:", self.n_client)
+                #         conn.sendto(data, i)  # send data to other chat participants
+                
+                # TODO
+                # Check if all Messages were already sent
             except:
                 print("Unexpected error:", sys.exc_info()[1])
                 break
@@ -63,7 +76,7 @@ class Chat_Server(object):
 
         self.n_client = self.n_client + 1
         self.client_addresses.append(active_client_address)  # storing the address of the client
-        Thread(args=(conn, active_client_address), target=self.handle_connection).start()
+        Thread(args=(conn, active_client_address,self.n_client), target=self.handle_connection).start()
         sleep(1)
 
 ########################### main program ###########################
