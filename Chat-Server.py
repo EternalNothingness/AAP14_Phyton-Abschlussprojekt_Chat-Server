@@ -49,16 +49,13 @@ class Chat_Server(object):
                 message_text = data.decode(self.server_charset)
                 print("Got from client ", active_client_address, " on Thread " , thread_id , ": %s" % message_text)
                 self.messages.append(Message(thread_id,message_text))
-                # for i in self.client_addresses:     # rotate in list
-                #     if i != active_client_address:
-                #         #should prevent sending data back to sender
-                #         print("Active Address:", active_client_address)
-                #         print("Client Address:", i)
-                #         print("Number of Clients:", self.n_client)
-                #         conn.sendto(data, i)  # send data to other chat participants
                 
-                # TODO
-                # Check if all Messages were already sent
+                # Check if all Messages the Server has received were also sent to all the Clients
+                for m in self.messages:
+                    if(thread_id not in m.read_by_threads):
+                        m.read_by_threads.append(thread_id)
+                        #TODO Change to sendAll
+                        conn.sendto(m.message_text, active_client_address)
             except:
                 print("Unexpected error:", sys.exc_info()[1])
                 break
