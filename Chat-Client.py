@@ -9,7 +9,7 @@ import sys
 from threading import Thread
 
 ########################### classes ###########################
-class Chat_CLient(object):
+class Chat_Client(object):
 
     # ------------------------- init -------------------------
     def __init__(self, host='localhost', port=12345, client_charset='cp850'):
@@ -20,6 +20,10 @@ class Chat_CLient(object):
         self.username = ""
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
+
+    # ------------------------- Destructor -------------------------
+    def __del__():
+        self.s.close()
 
     # ------------------------- establish_connection -------------------------
     def establish_connection(self):
@@ -35,38 +39,45 @@ class Chat_CLient(object):
                         print("username accepted")
                         break
             print("username declined")
-        Thread(args=(), target=self.handle_connection_in).start()
-        Thread(args=(), target=self.handle_connection_out).start()
+        Thread(args=(), target=self.handle_connection).start()
 
     # ------------------------- handle_connection_in -------------------------
     def handle_connection_in(self):
+         x = True
         while True:
-            try:
-                data_recv = self.s.recv(1024)
-                print((data_recv.decode(self.client_charset)))
-            except:
-                print("Unexpected error:", sys.exc_info()[1])
-                break
+            x = x & handle_connection_in()
+            x = x & handle_connection_out()
+            if(!x) break
         self.s.close()
+        self.del()
+
+    # ------------------------- handle_connection_in -------------------------
+    def handle_connection_in(self):
+        try:
+            data_recv = self.s.recv(1024)
+            print((data_recv.decode(self.client_charset)))
+            return True
+        except:
+            print("Unexpected error:", sys.exc_info()[1])
+        return False
 
     # ------------------------- handle_connection_out -------------------------
     def handle_connection_out(self):
-        while True:
-            try:
-                # data_send = input("%s said: " % self.username)
-                data_send = input()
-                if data_send == "":
-                    break
-                if len(data_send) <= 1024:
-                    self.s.sendall(data_send.encode(self.client_charset))
-                else:
-                    print("Too long message!")
-            except:
-                print("Unexpected error:", sys.exc_info()[1])
+        try:
+            # data_send = input("%s said: " % self.username)
+            data_send = input()
+            if data_send == "":
                 break
-        self.s.close()
+            if len(data_send) <= 1024:
+                self.s.sendall(data_send.encode(self.client_charset))
+            else:
+                print("Too long message!")
+            return True
+        except:
+            print("Unexpected error:", sys.exc_info()[1])
+        return False
 
 ########################### main program ###########################
-oChat_Client = Chat_CLient()
+oChat_Client = Chat_Client()
 oChat_Client.establish_connection()
 # oChat_Client.handle_connection()
