@@ -38,8 +38,8 @@ class Chat_Server(object):
         self.client_usernames = []      # memory for client usernames
         self.client_ack = []            # memory for client status
 
-        if self.s is None: # If Socket isn't already initialized, initialize it
-            self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
+        #if self.s is None: # If Socket isn't already initialized, initialize it
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
         self.oMessage = Message()
 
     # ------------------------- prepare_connection -------------------------
@@ -68,11 +68,8 @@ class Chat_Server(object):
                 data = conn.recv(1024)
                 if not data:
                     print("EOF was sent, closing socket")
-                    self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
-                    conn.close()  # Close the connection
-                    del self.client_ack[self.client_addresses.index(active_client_address)]
-                    self.client_addresses.remove(active_client_address)
-                    self.client_usernames.remove(active_client_username)
+                    self.close_conn(self.client_addresses.index(active_client_address))
+                    return
                 data_decode = data.decode(self.server_charset)
                 if data_decode == "":
                     break
@@ -109,17 +106,13 @@ class Chat_Server(object):
             except:
                 print("unexpected error:", sys.exc_info()[1])
                 break
+
+        # Finalizer
+
+        conn.close()  # Close the connection
+        self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
         if username_ack == "ack":   # if not, username is not set
-            if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-                conn.close()  # Close the connection
-                del self.client_ack[self.client_addresses.index(active_client_address)]
-                self.client_addresses.remove(active_client_address)
-                self.client_usernames.remove(active_client_username)
-            else:
-                conn.close()
-                self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
-        else:
-            conn.close()    # Close the connection
+            close_conn(self.client_addresses.index(active_client_address))
 
     # ------------------------- handle_connection_out -------------------------
     def handle_connection_out(self, conn, active_client_address):
@@ -141,14 +134,11 @@ class Chat_Server(object):
                 print("unexpected error:", sys.exc_info()[1])
                 break
 
-        if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-            conn.close()  # Close the connection
-            del self.client_ack[self.client_addresses.index(active_client_address)]
-            self.client_addresses.remove(active_client_address)
-            self.client_usernames.remove(active_client_username)
-        else:
-            conn.close()
-            self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
+    def close_conn(self,conn_index):
+        conn.close()  # Close the connection
+        del self.client_ack[conn_index]
+        self.client_addresses.remove(self.client_addresses[conn_index])
+        self.client_usernames.remove(self.client_usernames[conn_index])
 
 ########################### main program ###########################
 if __name__ == "__main__":
