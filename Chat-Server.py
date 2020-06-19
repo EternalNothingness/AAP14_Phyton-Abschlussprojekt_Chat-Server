@@ -68,57 +68,62 @@ class Chat_Server(object):
                 if (username_ack == "") | (username_ack == "n_ack"):
                     data = conn.recv(1024)
                     data_decode = data.decode(self.server_charset)
-                    active_client_username = data_decode[0:10]  # max. name length: 10
+                    active_client_username = data_decode[0:9]  # max. name length: 10
                     print("new username:", active_client_username)
+                    looped = False
                     for i in self.client_usernames:     # prevents that several users would get the same name
+                        looped = True
                         print("existing username:", i)
                         if i == active_client_username:
                             username_ack = "n_ack"
                             print(username_ack)
                             conn.sendall(username_ack.encode(self.server_charset))
                             break
-                    username_ack = "ack_add"
+                        username_ack = "ack_add"
+                    if not looped:
+                        username_ack = "ack_add"
                 elif username_ack == "ack_add":
                     username_ack = "ack"
                     print(username_ack)
                     self.client_addresses.append(active_client_address)     # storing the address of the client
                     self.client_usernames.append(active_client_username)    # storing the name of the user
                     self.client_ack.append(username_ack)                    # storing the status of the client
+                    self.oMessage.add_data("=> User <"+ active_client_username +"> logged in",active_client_address)
                     print("list of users:", self.client_usernames)
                     print("list of addresses:", self.client_addresses)
                     print("list of stats:", self.client_ack)
                     conn.sendall(username_ack.encode((self.server_charset)))
                     Thread(args=(conn, active_client_address), target=self.handle_connection_out).start()
                 elif username_ack == "ack":
-                    data = conn.recv(1024)
-                    if not data:
-                        print("EOF was sent, closing socket")
-                        break
-                    data_decode = data.decode(self.server_charset)
-                    if (data_decode == "") | (len(data_decode) > 1024):
-                        break
-                    self.oMessage.add_data(data_decode,active_client_address)
-                else:
-                    data = conn.recv(1024)
-                    data_decode = data.decode(self.server_charset)
                     if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
                         break
                     if "closed" in self.client_ack: # should avoid real-time problems (threading + closing of conns)
                         sleep(1)
+                    data = conn.recv(1024)
+                    if (not data) | (len(data) == 0) | (data == ""):
+                        print("=> EOF was sent, closing socket")
+                        conn.sendall("".encode(self.server_charset))
+                        break
+                    data_decode = data.decode(self.server_charset)
+                    if data_decode == "":
+                        print("=> EOF was sent, closing socket")
+                        break
                     print("received data from:", active_client_address, ": %s" % data_decode)
                     self.oMessage.add_data(data_decode, active_client_address)
             except:
-                print("unexpected error:", sys.exc_info()[1])
+                print("Connection was closed on the Client Side") #, sys.exc_info()[1])
                 break
 
         # Finalizer
 
-        conn.close()  # Close the connection
-        if username_ack == "ack":
-            self.client_addresses.remove(active_client_address)
-            self.client_usernames.remove(active_client_username)
-            self.client_ack.remove(username_ack)
+        self.oMessage.add_data("=> User <" + active_client_username + "> logged out",active_client_address)
 
+        conn.close()  # Close the connection
+        if (username_ack == "ack") | (active_client_address in self.client_addresses):
+            # Cannot be done here => handle_connection_out will throw Error
+                # self.client_addresses.remove(active_client_address)
+                # self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
+            self.client_usernames.remove(active_client_username)
 
     # ------------------------- handle_connection_out -------------------------
     def handle_connection_out(self, conn, active_client_address):
@@ -127,6 +132,9 @@ class Chat_Server(object):
         while True:
             try:
                 if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
+                    if active_client_address in self.client_addresses:
+                        self.client_addresses.remove(active_client_address)
+                        self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
                     break
                 if "closed" in self.client_ack: # should avoid real-time problems (threading + closing of conns)
                     sleep(1)
@@ -137,7 +145,7 @@ class Chat_Server(object):
                         data = self.client_usernames[self.client_addresses.index(self.oMessage.source_address[n_message])] + " said: " + self.oMessage.data[n_message]
                         conn.sendall(data.encode(self.server_charset))
             except:
-                print("unexpected error:", sys.exc_info()[1])
+                print("Connection was closed on the Client Side") #, sys.exc_info()[1])
                 break
 
 ########################### main program ###########################
