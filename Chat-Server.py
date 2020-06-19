@@ -65,15 +65,9 @@ class Chat_Server(object):
         username_ack = ""
         while True:
             try:
-                data = conn.recv(1024)
-                if not data:
-                    print("EOF was sent, closing socket")
-                    self.close_conn(self.client_addresses.index(active_client_address))
-                    return
-                data_decode = data.decode(self.server_charset)
-                if data_decode == "":
-                    break
-                if username_ack == "":  # if that condition is met, the user has no name set
+                if username_ack == "" & username_ack == "n_ack":
+                    data = conn.recv(1024)
+                    data_decode = data.decode(self.server_charset)
                     active_client_username = data_decode[0:10]  # max. name length: 10
                     print("new username:", active_client_username)
                     for i in self.client_usernames:     # prevents that several users would get the same name
@@ -83,19 +77,24 @@ class Chat_Server(object):
                             print(username_ack)
                             conn.sendall(username_ack.encode(self.server_charset))
                             break
-                    if username_ack != "n_ack":
-                        username_ack = "ack"
-                        print(username_ack)
-                        self.client_addresses.append(active_client_address)     # storing the address of the client
-                        self.client_usernames.append(active_client_username)    # storing the name of the user
-                        self.client_ack.append(username_ack)                    # storing the status of the client
-                        print("list of users:", self.client_usernames)
-                        print("list of addresses:", self.client_addresses)
-                        print("list of stats:", self.client_ack)
-                        conn.sendall(username_ack.encode((self.server_charset)))
-                        Thread(args=(conn, active_client_address), target=self.handle_connection_out).start()
-                    else:
-                        username_ack = ""   # if not set, the user would now never get a name
+                    username_ack = "ack"
+                    print(username_ack)
+                    self.client_addresses.append(active_client_address)     # storing the address of the client
+                    self.client_usernames.append(active_client_username)    # storing the name of the user
+                    self.client_ack.append(username_ack)                    # storing the status of the client
+                    print("list of users:", self.client_usernames)
+                    print("list of addresses:", self.client_addresses)
+                    print("list of stats:", self.client_ack)
+                    conn.sendall(username_ack.encode((self.server_charset)))
+                    Thread(args=(conn, active_client_address), target=self.handle_connection_out).start()
+                if username_ack == "ack"
+                    data = conn.recv(1024)
+                    if not data:
+                        print("EOF was sent, closing socket")
+                        break
+                    data_decode = data.decode(self.server_charset)
+                    if data_decode == "" | len(data_decode) > 1024:
+                        break
                 else:
                     if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
                         break
@@ -110,9 +109,11 @@ class Chat_Server(object):
         # Finalizer
 
         conn.close()  # Close the connection
-        self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
-        if username_ack == "ack":   # if not, username is not set
-            close_conn(self.client_addresses.index(active_client_address))
+        if username_ack:
+            self.client_addresses.remove(active_client_address)
+            self.client_usernames.remove(active_client_username)
+            self.client_ack.remove(username_ack)
+
 
     # ------------------------- handle_connection_out -------------------------
     def handle_connection_out(self, conn, active_client_address):
@@ -133,12 +134,6 @@ class Chat_Server(object):
             except:
                 print("unexpected error:", sys.exc_info()[1])
                 break
-
-    def close_conn(self,conn_index):
-        conn.close()  # Close the connection
-        del self.client_ack[conn_index]
-        self.client_addresses.remove(self.client_addresses[conn_index])
-        self.client_usernames.remove(self.client_usernames[conn_index])
 
 ########################### main program ###########################
 if __name__ == "__main__":
