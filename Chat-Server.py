@@ -38,7 +38,8 @@ class Chat_Server(object):
         self.client_usernames = []      # memory for client usernames
         self.client_ack = []            # memory for client status
 
-        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
+        if self.s is None: # If Socket isn't already initialized, initialize it
+            self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
         self.oMessage = Message()
 
     # ------------------------- prepare_connection -------------------------
@@ -65,6 +66,13 @@ class Chat_Server(object):
         while True:
             try:
                 data = conn.recv(1024)
+                if not data:
+                    print("EOF was sent, closing socket")
+                    self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
+                    conn.close()  # Close the connection
+                    del self.client_ack[self.client_addresses.index(active_client_address)]
+                    self.client_addresses.remove(active_client_address)
+                    self.client_usernames.remove(active_client_username)
                 data_decode = data.decode(self.server_charset)
                 if data_decode == "":
                     break
