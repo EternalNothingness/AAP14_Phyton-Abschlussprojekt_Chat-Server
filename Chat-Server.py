@@ -65,7 +65,7 @@ class Chat_Server(object):
         username_ack = ""
         while True:
             try:
-                if username_ack == "" & username_ack == "n_ack":
+                if (username_ack == "") | (username_ack == "n_ack"):
                     data = conn.recv(1024)
                     data_decode = data.decode(self.server_charset)
                     active_client_username = data_decode[0:10]  # max. name length: 10
@@ -77,6 +77,8 @@ class Chat_Server(object):
                             print(username_ack)
                             conn.sendall(username_ack.encode(self.server_charset))
                             break
+                    username_ack = "ack_add"
+                elif username_ack == "ack_add":
                     username_ack = "ack"
                     print(username_ack)
                     self.client_addresses.append(active_client_address)     # storing the address of the client
@@ -87,15 +89,17 @@ class Chat_Server(object):
                     print("list of stats:", self.client_ack)
                     conn.sendall(username_ack.encode((self.server_charset)))
                     Thread(args=(conn, active_client_address), target=self.handle_connection_out).start()
-                if username_ack == "ack"
+                elif username_ack == "ack":
                     data = conn.recv(1024)
                     if not data:
                         print("EOF was sent, closing socket")
                         break
                     data_decode = data.decode(self.server_charset)
-                    if data_decode == "" | len(data_decode) > 1024:
+                    if (data_decode == "") | (len(data_decode) > 1024):
                         break
                 else:
+                    data = conn.recv(1024)
+                    data_decode = data.decode(self.server_charset)
                     if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
                         break
                     if "closed" in self.client_ack: # should avoid real-time problems (threading + closing of conns)
@@ -109,7 +113,7 @@ class Chat_Server(object):
         # Finalizer
 
         conn.close()  # Close the connection
-        if username_ack:
+        if username_ack == "ack":
             self.client_addresses.remove(active_client_address)
             self.client_usernames.remove(active_client_username)
             self.client_ack.remove(username_ack)
