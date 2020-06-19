@@ -22,7 +22,7 @@ class Chat_Client(object):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
 
     # ------------------------- Destructor -------------------------
-    def __del__():
+    def __del__(self):
         self.s.close()
 
     # ------------------------- establish_connection -------------------------
@@ -42,14 +42,14 @@ class Chat_Client(object):
         Thread(args=(), target=self.handle_connection).start()
 
     # ------------------------- handle_connection_in -------------------------
-    def handle_connection_in(self):
-         x = True
+    def handle_connection(self):
+        x = True
         while True:
-            x = x & handle_connection_in()
-            x = x & handle_connection_out()
-            if(!x) break
+            x = x & self.handle_connection_in()
+            x = x & self.handle_connection_out()
+            if not x:
+                break
         self.s.close()
-        self.del()
 
     # ------------------------- handle_connection_in -------------------------
     def handle_connection_in(self):
@@ -66,12 +66,10 @@ class Chat_Client(object):
         try:
             # data_send = input("%s said: " % self.username)
             data_send = input()
-            if data_send == "":
-                break
-            if len(data_send) <= 1024:
+            if len(data_send) <= 1024 & len(data_send) > 0:
                 self.s.sendall(data_send.encode(self.client_charset))
             else:
-                print("Too long message!")
+                print("Invalid message! Message length: <", len(data_send), ">")
             return True
         except:
             print("Unexpected error:", sys.exc_info()[1])
