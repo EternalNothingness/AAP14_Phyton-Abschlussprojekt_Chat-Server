@@ -102,6 +102,7 @@ class Chat_Client(object):
     #     return False
 
 ########################### main program ###########################
-oChat_Client = Chat_Client()
-oChat_Client.establish_connection()
-# oChat_Client.handle_connection()
+if __name__ == "__main__":
+    oChat_Client = Chat_Client()
+    oChat_Client.establish_connection()
+    # oChat_Client.handle_connection()

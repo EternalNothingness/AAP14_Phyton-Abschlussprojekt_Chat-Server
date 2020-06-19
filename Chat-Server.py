@@ -143,7 +143,8 @@ class Chat_Server(object):
             self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
 
 ########################### main program ###########################
-oChat_Server = Chat_Server()
-oChat_Server.prepare_connection()
-while True:
-    oChat_Server.establish_connection()
+if __name__ == "__main__":
+    oChat_Server = Chat_Server()
+    oChat_Server.prepare_connection()
+    while True:
+        oChat_Server.establish_connection()
