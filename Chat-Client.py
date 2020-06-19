@@ -23,6 +23,7 @@ class Chat_Client(object):
 
     # ------------------------- Destructor -------------------------
     def __del__(self):
+        self.s.shutdown(SHUT_RDWR)
         self.s.close()
 
     # ------------------------- establish_connection -------------------------
@@ -66,39 +67,39 @@ class Chat_Client(object):
                 print("Unexpected error:", sys.exc_info()[1])
                 break
 
-    # ------------------------- handle_connection_in -------------------------
-    def handle_connection_x(self):
-        x = True
-        while True:
-            x = x & self.handle_connection_in()
-            x = x & self.handle_connection_out()
-            if not x:
-                break
-        self.s.close()
-
-    # ------------------------- handle_connection_in -------------------------
-    def handle_connection_in_x(self):
-        try:
-            data_recv = self.s.recv(1024)
-            print((data_recv.decode(self.client_charset)))
-            return True
-        except:
-            print("Unexpected error:", sys.exc_info()[1])
-        return False
-
-    # ------------------------- handle_connection_out -------------------------
-    def handle_connection_out_x(self):
-        try:
-            # data_send = input("%s said: " % self.username)
-            data_send = input()
-            if len(data_send) <= 1024 & len(data_send) > 0:
-                self.s.sendall(data_send.encode(self.client_charset))
-            else:
-                print("Invalid message! Message length: <", len(data_send), ">")
-            return True
-        except:
-            print("Unexpected error:", sys.exc_info()[1])
-        return False
+    # # ------------------------- handle_connection -------------------------
+    # def handle_connection_x(self):
+    #     x = True
+    #     while True:
+    #         x = x & self.handle_connection_in()
+    #         x = x & self.handle_connection_out()
+    #         if not x:
+    #             break
+    #     self.s.close()
+    #
+    # # ------------------------- handle_connection_in -------------------------
+    # def handle_connection_in_x(self):
+    #     try:
+    #         data_recv = self.s.recv(1024)
+    #         print((data_recv.decode(self.client_charset)))
+    #         return True
+    #     except:
+    #         print("Unexpected error:", sys.exc_info()[1])
+    #     return False
+    #
+    # # ------------------------- handle_connection_out -------------------------
+    # def handle_connection_out_x(self):
+    #     try:
+    #         # data_send = input("%s said: " % self.username)
+    #         data_send = input()
+    #         if len(data_send) <= 1024 & len(data_send) > 0:
+    #             self.s.sendall(data_send.encode(self.client_charset))
+    #         else:
+    #             print("Invalid message! Message length: <", len(data_send), ">")
+    #         return True
+    #     except:
+    #         print("Unexpected error:", sys.exc_info()[1])
+    #     return False
 
 ########################### main program ###########################
 oChat_Client = Chat_Client()
