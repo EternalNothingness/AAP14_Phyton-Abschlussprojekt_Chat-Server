@@ -39,10 +39,35 @@ class Chat_Client(object):
                         print("username accepted")
                         break
             print("username declined")
-        Thread(args=(), target=self.handle_connection).start()
+        Thread(args=(), target=self.handle_connection_out).start()
+        Thread(args=(), target=self.handle_connection_in).start()
 
     # ------------------------- handle_connection_in -------------------------
-    def handle_connection(self):
+    def handle_connection_in(self):
+        while True:
+            try:
+                data_recv = self.s.recv(1024)
+                print((data_recv.decode(self.client_charset)))
+            except:
+                print("Unexpected error:", sys.exc_info()[1])
+                break
+
+    # ------------------------- handle_connection_out -------------------------
+    def handle_connection_out(self):
+        while True:
+            try:
+                # data_send = input("%s said: " % self.username)
+                data_send = input()
+                if (len(data_send) <= 1024) & (len(data_send) > 0):
+                    self.s.sendall(data_send.encode(self.client_charset))
+                else:
+                    print("Invalid message! Message length: <", len(data_send), ">")
+            except:
+                print("Unexpected error:", sys.exc_info()[1])
+                break
+
+    # ------------------------- handle_connection_in -------------------------
+    def handle_connection_x(self):
         x = True
         while True:
             x = x & self.handle_connection_in()
@@ -52,7 +77,7 @@ class Chat_Client(object):
         self.s.close()
 
     # ------------------------- handle_connection_in -------------------------
-    def handle_connection_in(self):
+    def handle_connection_in_x(self):
         try:
             data_recv = self.s.recv(1024)
             print((data_recv.decode(self.client_charset)))
@@ -62,7 +87,7 @@ class Chat_Client(object):
         return False
 
     # ------------------------- handle_connection_out -------------------------
-    def handle_connection_out(self):
+    def handle_connection_out_x(self):
         try:
             # data_send = input("%s said: " % self.username)
             data_send = input()
