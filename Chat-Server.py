@@ -97,6 +97,7 @@ class Chat_Server(object):
                     data_decode = data.decode(self.server_charset)
                     if (data_decode == "") | (len(data_decode) > 1024):
                         break
+                    self.oMessage.add_data(data_decode,active_client_address)
                 else:
                     data = conn.recv(1024)
                     data_decode = data.decode(self.server_charset)
