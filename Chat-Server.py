@@ -142,11 +142,11 @@ class Chat_Server(object):
     def handle_connection_out(self, conn, active_client_address):
         active_client_username = self.client_usernames[self.client_addresses.index(active_client_address)]
         n_message = self.oMessage.n_message
-        data = "system message: list of active users: "
+        data = "system message: list of other active users: "
 
         for i in self.client_usernames:
             if i != active_client_username:
-                if data == "system message: list of active users: ":
+                if data == "system message: list of other active users: ":
                     data = data + i
                 else:
                     data = data + ", " + i
