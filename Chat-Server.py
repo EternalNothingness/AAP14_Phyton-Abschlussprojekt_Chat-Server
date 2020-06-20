@@ -39,6 +39,7 @@ class Chat_Server(object):
         self.client_addresses = []      # memory for client addresses
         self.client_usernames = []      # memory for client usernames
         self.client_ack = []            # memory for client status
+        self.SYSTEM = "SYSTEM"          # variable for system messages
 
         #if self.s is None: # If Socket isn't already initialized, initialize it
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
@@ -85,13 +86,17 @@ class Chat_Server(object):
                         username_ack = "ack_add"
                     if not looped:
                         username_ack = "ack_add"
+                    if active_client_username == self.SYSTEM:
+                        username_ack = "n_ack"
+                        print(username_ack)
+                        conn.sendall(username_ack.encode(self.server_charset))
                 elif username_ack == "ack_add":
                     username_ack = "ack"
                     print(username_ack)
                     self.client_addresses.append(active_client_address)     # storing the address of the client
                     self.client_usernames.append(active_client_username)    # storing the name of the user
                     self.client_ack.append(username_ack)                    # storing the status of the client
-                    self.oMessage.add_data("=> User <"+ active_client_username +"> logged in", active_client_address, active_client_username)
+                    self.oMessage.add_data("=> User <"+ active_client_username +"> logged in", active_client_address, self.SYSTEM)
                     print("list of users:", self.client_usernames)
                     print("list of addresses:", self.client_addresses)
                     print("list of stats:", self.client_ack)
@@ -123,7 +128,7 @@ class Chat_Server(object):
 
         if username_ack == "ack":   # test if username set
             if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-                self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, active_client_username)
+                self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, self.SYSTEM)
                 conn.close()  # Close the connection
                 del self.client_ack[self.client_addresses.index(active_client_address)]
                 self.client_addresses.remove(active_client_address)
@@ -147,7 +152,10 @@ class Chat_Server(object):
                     n_message = n_message + 1
                     if self.oMessage.source_address[n_message] != active_client_address:
                         print("sending data to:", active_client_address)
-                        data = self.oMessage.source_username[n_message] + " said: " + self.oMessage.data[n_message]
+                        if self.oMessage.source_username[n_message] == self.SYSTEM:
+                            data = "system message: " + self.oMessage.data[n_message]
+                        else:
+                            data = self.oMessage.source_username[n_message] + " said: " + self.oMessage.data[n_message]
                         conn.sendall(data.encode(self.server_charset))
             except:
                 print("Connection was closed on the Client Side") #, sys.exc_info()[1])
@@ -157,7 +165,7 @@ class Chat_Server(object):
         # Finalizer
 
         if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-            self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, active_client_username)
+            self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, self.SYSTEM)
             conn.close()  # Close the connection
             del self.client_ack[self.client_addresses.index(active_client_address)]
             self.client_addresses.remove(active_client_address)
