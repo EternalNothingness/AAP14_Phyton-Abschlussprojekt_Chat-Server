@@ -96,7 +96,7 @@ class Chat_Server(object):
                     self.client_addresses.append(active_client_address)     # storing the address of the client
                     self.client_usernames.append(active_client_username)    # storing the name of the user
                     self.client_ack.append(username_ack)                    # storing the status of the client
-                    self.oMessage.add_data("=> User <"+ active_client_username +"> logged in", active_client_address, self.SYSTEM)
+                    self.oMessage.add_data("User <"+ active_client_username +"> logged in", active_client_address, self.SYSTEM)
                     print("list of users:", self.client_usernames)
                     print("list of addresses:", self.client_addresses)
                     print("list of stats:", self.client_ack)
@@ -128,7 +128,7 @@ class Chat_Server(object):
 
         if username_ack == "ack":   # test if username set
             if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-                self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, self.SYSTEM)
+                self.oMessage.add_data("User <" + active_client_username + "> logged out", active_client_address, self.SYSTEM)
                 conn.close()  # Close the connection
                 del self.client_ack[self.client_addresses.index(active_client_address)]
                 self.client_addresses.remove(active_client_address)
@@ -165,7 +165,7 @@ class Chat_Server(object):
         # Finalizer
 
         if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-            self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, self.SYSTEM)
+            self.oMessage.add_data("User <" + active_client_username + "> logged out", active_client_address, self.SYSTEM)
             conn.close()  # Close the connection
             del self.client_ack[self.client_addresses.index(active_client_address)]
             self.client_addresses.remove(active_client_address)
