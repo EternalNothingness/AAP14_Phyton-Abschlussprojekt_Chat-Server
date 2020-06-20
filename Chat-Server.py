@@ -1,7 +1,7 @@
 # title: chat-server program
-# author: EternalNothingness
+# authors: davidrieser & EternalNothingness
 # created: 12.06.2020
-# last change: 16.06.2020
+# last change: 19.06.2020
 
 ########################### imports ###########################
 import socket
