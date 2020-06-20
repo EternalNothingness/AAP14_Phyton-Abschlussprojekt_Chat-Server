@@ -23,8 +23,8 @@ class Chat_Client(object):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # Create a socket object
 
     # ------------------------- Destructor -------------------------
-    def __del__():
-        close_socket()
+    def __del__(self):
+        self.close_socket()
 
     def close_socket(self):
         self.sendEOF()
