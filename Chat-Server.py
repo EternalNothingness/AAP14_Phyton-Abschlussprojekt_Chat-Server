@@ -65,6 +65,7 @@ class Chat_Server(object):
         username_ack = ""
         while True:
             try:
+                # ------------------------- username allocation -------------------------
                 if (username_ack == "") | (username_ack == "n_ack"):
                     data = conn.recv(1024)
                     data_decode = data.decode(self.server_charset)
@@ -94,6 +95,7 @@ class Chat_Server(object):
                     print("list of stats:", self.client_ack)
                     conn.sendall(username_ack.encode((self.server_charset)))
                     Thread(args=(conn, active_client_address), target=self.handle_connection_out).start()
+                # ------------------------- wait for input -------------------------
                 elif username_ack == "ack":
                     if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
                         break
@@ -118,12 +120,12 @@ class Chat_Server(object):
 
         if username_ack == "ack":   # test if username set
             if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-                self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address)
+                # self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address)
+                conn.close()  # Close the connection
                 del self.client_ack[self.client_addresses.index(active_client_address)]
                 self.client_addresses.remove(active_client_address)
                 self.client_usernames.remove(active_client_username)
             else:
-                conn.close()  # Close the connection
                 self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
         else:   # if username not set, just close the connection
             conn.close()
@@ -151,13 +153,12 @@ class Chat_Server(object):
         # Finalizer
 
         if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-            self.oMessage.add_data("=> User <" + active_client_username + "> logged out",
-                                   active_client_address)
+            # self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address)
+            conn.close()  # Close the connection
             del self.client_ack[self.client_addresses.index(active_client_address)]
             self.client_addresses.remove(active_client_address)
             self.client_usernames.remove(active_client_username)
         else:
-            conn.close()  # Close the connection
             self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
 
 ########################### main program ###########################
