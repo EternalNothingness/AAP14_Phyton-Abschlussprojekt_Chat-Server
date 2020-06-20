@@ -116,14 +116,17 @@ class Chat_Server(object):
 
         # Finalizer
 
-        self.oMessage.add_data("=> User <" + active_client_username + "> logged out",active_client_address)
-
-        conn.close()  # Close the connection
-        if (username_ack == "ack") | (active_client_address in self.client_addresses):
-            # Cannot be done here => handle_connection_out will throw Error
-                # self.client_addresses.remove(active_client_address)
-                # self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
-            self.client_usernames.remove(active_client_username)
+        if username_ack == "ack":   # test if username set
+            if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
+                self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address)
+                del self.client_ack[self.client_addresses.index(active_client_address)]
+                self.client_addresses.remove(active_client_address)
+                self.client_usernames.remove(active_client_username)
+            else:
+                conn.close()  # Close the connection
+                self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
+        else:   # if username not set, just close the connection
+            conn.close()
 
     # ------------------------- handle_connection_out -------------------------
     def handle_connection_out(self, conn, active_client_address):
@@ -132,11 +135,8 @@ class Chat_Server(object):
         while True:
             try:
                 if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-                    if active_client_address in self.client_addresses:
-                        self.client_addresses.remove(active_client_address)
-                        self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
                     break
-                if "closed" in self.client_ack: # should avoid real-time problems (threading + closing of conns)
+                if "closed" in self.client_ack:     # should avoid real-time problems (threading + closing of conns)
                     sleep(1)
                 if self.oMessage.n_message > n_message:
                     n_message = n_message + 1
@@ -147,6 +147,18 @@ class Chat_Server(object):
             except:
                 print("Connection was closed on the Client Side") #, sys.exc_info()[1])
                 break
+
+        # Finalizer
+
+        if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
+            self.oMessage.add_data("=> User <" + active_client_username + "> logged out",
+                                   active_client_address)
+            del self.client_ack[self.client_addresses.index(active_client_address)]
+            self.client_addresses.remove(active_client_address)
+            self.client_usernames.remove(active_client_username)
+        else:
+            conn.close()  # Close the connection
+            self.client_ack[self.client_addresses.index(active_client_address)] = "closed"
 
 ########################### main program ###########################
 if __name__ == "__main__":
