@@ -16,11 +16,13 @@ class Message(object):
     def __init__(self):
         self.data = []  # list for data
         self.source_address = []    # list for source addresses
+        self.source_username = []   # list for source usernames
         self.n_message = -1   # number of messages - 1
 
-    def add_data(self, data, source_address):
+    def add_data(self, data, source_address, source_username):
         self.data.append(data)
         self.source_address.append(source_address)
+        self.source_username.append(source_username)
         self.n_message = self.n_message + 1
 
 # ========================= Chat_Server =========================
@@ -89,7 +91,7 @@ class Chat_Server(object):
                     self.client_addresses.append(active_client_address)     # storing the address of the client
                     self.client_usernames.append(active_client_username)    # storing the name of the user
                     self.client_ack.append(username_ack)                    # storing the status of the client
-                    self.oMessage.add_data("=> User <"+ active_client_username +"> logged in",active_client_address)
+                    self.oMessage.add_data("=> User <"+ active_client_username +"> logged in", active_client_address, active_client_username)
                     print("list of users:", self.client_usernames)
                     print("list of addresses:", self.client_addresses)
                     print("list of stats:", self.client_ack)
@@ -111,16 +113,17 @@ class Chat_Server(object):
                         print("=> EOF was sent, closing socket")
                         break
                     print("received data from:", active_client_address, ": %s" % data_decode)
-                    self.oMessage.add_data(data_decode, active_client_address)
+                    self.oMessage.add_data(data_decode, active_client_address, active_client_username)
             except:
                 print("Connection was closed on the Client Side") #, sys.exc_info()[1])
+                # print(sys.exc_info()[1])
                 break
 
         # Finalizer
 
         if username_ack == "ack":   # test if username set
             if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-                # self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address)
+                self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, active_client_username)
                 conn.close()  # Close the connection
                 del self.client_ack[self.client_addresses.index(active_client_address)]
                 self.client_addresses.remove(active_client_address)
@@ -144,16 +147,17 @@ class Chat_Server(object):
                     n_message = n_message + 1
                     if self.oMessage.source_address[n_message] != active_client_address:
                         print("sending data to:", active_client_address)
-                        data = self.client_usernames[self.client_addresses.index(self.oMessage.source_address[n_message])] + " said: " + self.oMessage.data[n_message]
+                        data = self.oMessage.source_username[n_message] + " said: " + self.oMessage.data[n_message]
                         conn.sendall(data.encode(self.server_charset))
             except:
                 print("Connection was closed on the Client Side") #, sys.exc_info()[1])
+                # print(sys.exc_info()[1])
                 break
 
         # Finalizer
 
         if self.client_ack[self.client_addresses.index(active_client_address)] == "closed":
-            # self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address)
+            self.oMessage.add_data("=> User <" + active_client_username + "> logged out", active_client_address, active_client_username)
             conn.close()  # Close the connection
             del self.client_ack[self.client_addresses.index(active_client_address)]
             self.client_addresses.remove(active_client_address)
