@@ -95,7 +95,7 @@ class Chat_Client(object):
                     self.oChat_Window.print_message("username accepted")
                     break
             # print("username declined")
-            self.oChat_Window.print_message("username accepted")
+            self.oChat_Window.print_message("username declined")
         Thread(args=(), target=self.handle_connection_in).start()
         Thread(args=(), target=self.handle_connection_out).start()
 
