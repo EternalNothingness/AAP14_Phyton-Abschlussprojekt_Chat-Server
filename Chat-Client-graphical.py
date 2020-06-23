@@ -10,19 +10,19 @@ from threading import Thread
 from tkinter import *
 
 ########################### classes ###########################
-class Chat_Window(Tk):
+class Chat_Window(object):
 
     # ------------------------- init -------------------------
     def __init__(self):
-        self.master = super().__init__(className="Chat-Window")
+        self.window = Tk()
 
         self.n_message = 0
         self.data = ""
 
-        self.input_line = Entry(self.master)
+        self.input_line = Entry(self.window)
         self.input_line.grid(row=self.n_message)
 
-        Button(self.master, text='Send', command=self.send_data).grid(row=self.n_message, column=1)
+        Button(self.window, text='Send', command=self.send_data).grid(row=self.n_message, column=1)
         self.button_pressed = 0
 
     # ------------------------- get_input -------------------------
@@ -34,7 +34,7 @@ class Chat_Window(Tk):
     # ------------------------- print_message -------------------------
     def print_message(self, data):
         self.n_message = self.n_message + 1
-        Label(self.master, text=data).grid(row=self.n_message)
+        Label(self.window, text=data).grid(row=self.n_message)
 
     # ------------------------- send_data -------------------------
     def send_data(self):
@@ -82,20 +82,15 @@ class Chat_Client(object):
         self.s.connect(self.client_address)
         self.socket_active = True
         while True:
-            # self.username = input("username: ")
-            self.oChat_Window.print_message("username:")
-            self.oChat_Window.wait_for_button_pressed()
-            self.username = self.oChat_Window.data
+            self.username = input("username: ")
             if (len(self.username) > 0) & (len(self.username) <= 10):
                 self.s.sendall(self.username.encode(self.client_charset))
                 data_recv = self.s.recv(1024)
                 data_recv_decode = data_recv.decode(self.client_charset)
                 if data_recv_decode == "ack":
-                    # print("username accepted")
-                    self.oChat_Window.print_message("username accepted")
+                    print("username accepted")
                     break
-            # print("username declined")
-            self.oChat_Window.print_message("username declined")
+            print("username declined")
         Thread(args=(), target=self.handle_connection_in).start()
         Thread(args=(), target=self.handle_connection_out).start()
 
@@ -147,4 +142,4 @@ class Chat_Client(object):
 if __name__ == "__main__":
     oChat_Client = Chat_Client()
     oChat_Client.establish_connection()
-    mainloop()
+    oChat_Client.oChat_Window.window.mainloop()
