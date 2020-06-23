@@ -22,11 +22,22 @@ class Chat_Window(object):
         self.username_set = ""
         self.username = ""
 
-        self.input_line = Entry(self.window)
-        self.input_line.grid(row=self.n_message)
+        self.window.resizable(False, False)
 
-        Button(self.window, text='Send', command=self.send_data).grid(row=self.n_message, column=1)
+        self.window.bind('<Return>',lambda a : self.send_data())
+
+        self.text_field = Text(self.window)
+        self.text_field.pack(fill="both", expand=True,ipadx=10)
+
+        self.text_field.configure(state="disabled")
+        # Apparently needed for copying Text from the Text-Field
+        self.text_field.bind("<1>", lambda event: self.text_field.focus_set())
+
+        self.button = Button(self.window, text='Send', command=self.send_data).pack(fill="x", expand=True,side=BOTTOM)
         self.button_pressed = 0
+
+        self.input_line = Entry(self.window)
+        self.input_line.pack(fill="x", expand=True,side=BOTTOM)
 
     # ------------------------- get_input -------------------------
     def get_input(self):
@@ -37,7 +48,9 @@ class Chat_Window(object):
     # ------------------------- print_message -------------------------
     def print_message(self, data):
         self.n_message = self.n_message + 1
-        Label(self.window, text=data).grid(row=self.n_message)
+        self.text_field.configure(state="normal")
+        self.text_field.insert(END,data+"\r\n")
+        self.text_field.configure(state="disabled")
 
     # ------------------------- send_data -------------------------
     def send_data(self):
@@ -108,8 +121,8 @@ class Chat_Client(object):
                     break
             # print("username declined")
             self.oChat_Window.print_message("username declined")
-        Thread(args=(), target=self.handle_connection_in).start()
-        Thread(args=(), target=self.handle_connection_out).start()
+        Thread(args=(), target=self.handle_connection_in,daemon=True).start()
+        Thread(args=(), target=self.handle_connection_out,daemon=True).start()
 
     # ------------------------- handle_connection_in -------------------------
     def handle_connection_in(self):
@@ -158,6 +171,6 @@ class Chat_Client(object):
 
 if __name__ == "__main__":
     oChat_Client = Chat_Client()
-    Thread(args=(), target=oChat_Client.establish_connection).start()
+    Thread(args=(), target=oChat_Client.establish_connection,daemon=True).start()
     # oChat_Client.establish_connection()
     oChat_Client.oChat_Window.window.mainloop()
