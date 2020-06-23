@@ -8,6 +8,7 @@ import socket
 import sys
 from threading import Thread
 from tkinter import *
+from time import sleep
 
 ########################### classes ###########################
 class Chat_Window(object):
@@ -82,15 +83,20 @@ class Chat_Client(object):
         self.s.connect(self.client_address)
         self.socket_active = True
         while True:
-            self.username = input("username: ")
+            # self.username = input("username: ")
+            self.oChat_Window.print_message("username:")
+            self.oChat_Window.wait_for_button_pressed()
+            self.username = self.oChat_Window.data
             if (len(self.username) > 0) & (len(self.username) <= 10):
                 self.s.sendall(self.username.encode(self.client_charset))
                 data_recv = self.s.recv(1024)
                 data_recv_decode = data_recv.decode(self.client_charset)
                 if data_recv_decode == "ack":
-                    print("username accepted")
+                    # print("username accepted")
+                    self.oChat_Window.print_message("username accepted")
                     break
-            print("username declined")
+            # print("username declined")
+            self.oChat_Window.print_message("username declined")
         Thread(args=(), target=self.handle_connection_in).start()
         Thread(args=(), target=self.handle_connection_out).start()
 
@@ -141,5 +147,6 @@ class Chat_Client(object):
 
 if __name__ == "__main__":
     oChat_Client = Chat_Client()
-    oChat_Client.establish_connection()
+    Thread(args=(), target=oChat_Client.establish_connection).start()
+    # oChat_Client.establish_connection()
     oChat_Client.oChat_Window.window.mainloop()
