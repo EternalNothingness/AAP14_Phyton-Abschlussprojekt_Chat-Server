@@ -110,8 +110,8 @@ class Chat_Client(object):
                     break
             # print("username declined")
             self.oChat_Window.print_message("username declined")
-        Thread(args=(), target=self.handle_connection_in).start()
-        Thread(args=(), target=self.handle_connection_out).start()
+        Thread(args=(), target=self.handle_connection_in,daemon=True).start()
+        Thread(args=(), target=self.handle_connection_out,daemon=True).start()
 
     # ------------------------- handle_connection_in -------------------------
     def handle_connection_in(self):
@@ -160,6 +160,6 @@ class Chat_Client(object):
 
 if __name__ == "__main__":
     oChat_Client = Chat_Client()
-    Thread(args=(), target=oChat_Client.establish_connection).start()
+    Thread(args=(), target=oChat_Client.establish_connection,daemon=True).start()
     # oChat_Client.establish_connection()
     oChat_Client.oChat_Window.window.mainloop()
