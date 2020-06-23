@@ -1,7 +1,7 @@
 # title: graphical chat-client program
 # authors: davidrieser & EternalNothingness
 # created: 21.06.2020
-# last change: 21.06.2020
+# last change: 23.06.2020
 
 ########################### imports ###########################
 import socket
@@ -19,6 +19,8 @@ class Chat_Window(object):
 
         self.n_message = 0
         self.data = ""
+        self.username_set = ""
+        self.username = ""
 
         self.input_line = Entry(self.window)
         self.input_line.grid(row=self.n_message)
@@ -40,7 +42,10 @@ class Chat_Window(object):
     # ------------------------- send_data -------------------------
     def send_data(self):
         self.data = self.get_input()
-        self.print_message(self.data)
+        if self.username_set != "set":
+            self.print_message(self.data)
+        else:
+            self.print_message(self.username + " said: " + self.data)
         self.button_pressed = 1
 
     # ------------------------- wait_for_button_pressed -------------------------
@@ -49,6 +54,11 @@ class Chat_Window(object):
             if self.button_pressed == 1:
                 self.button_pressed = 0
                 break
+
+    # ------------------------- set_username -------------------------
+    def set_username(self, username):
+        self.username = username
+        self.username_set = "set"
 
 class Chat_Client(object):
 
@@ -94,6 +104,7 @@ class Chat_Client(object):
                 if data_recv_decode == "ack":
                     # print("username accepted")
                     self.oChat_Window.print_message("username accepted")
+                    self.oChat_Window.set_username(self.username)
                     break
             # print("username declined")
             self.oChat_Window.print_message("username declined")
